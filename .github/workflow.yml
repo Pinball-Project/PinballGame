@@ -1,0 +1,40 @@
+name: .NET Lint
+
+on:
+  push:
+    branches:
+      - "**"
+
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build project
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --verbosity diagnostic
+
+    - name: Run code analysis
+      run: dotnet build --no-restore --configuration Release --verbosity normal /p:RunAnalyzersDuringBuild=true /p:TreatWarningsAsErrors=true
+
+    - name: lint code
+      uses: docker://github/super-linter:v7.4.0
+      env:
+          VALIDATE_ALL_CODEBASE: false
+
+
